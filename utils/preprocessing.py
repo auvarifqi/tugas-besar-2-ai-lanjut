@@ -1274,6 +1274,9 @@ class FeatureScaler(BaseEstimator, TransformerMixin):
             # Fit scaler
             scaler.fit(X[[feature]])
             self.scalers[feature] = scaler
+        
+        print(f"Normal features (StandardScaler): {self.normal_features}")
+        print(f"Non-normal features (MinMaxScaler): {self.non_normal_features}")
 
         return self
 
