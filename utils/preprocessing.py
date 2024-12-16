@@ -1074,6 +1074,9 @@ class FeatureDimensionReducer(BaseEstimator, TransformerMixin):
             self.reducer.fit(X_selected)
             # Store explained variance ratio
             self.variance_ratio_ = self.reducer.explained_variance_ratio_
+            # print variance ratio
+            print(f"Variance Ratio: {self.variance_ratio_}")
+            print(f"Cumulative Variance Ratio (Threshold 0.90): {np.cumsum(self.variance_ratio_)}")
         elif self.method == 'lda':
             # Use LDA for dimensionality reduction, requires target labels (supervised method)
             if y is None:
