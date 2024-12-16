@@ -5,3 +5,6 @@ seaborn
 scipy
 scikit-learn
 imblearn
+plotly
+nbformat>=4.2.0
+tqdm

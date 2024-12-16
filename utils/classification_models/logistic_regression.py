@@ -1,7 +1,5 @@
 import numpy as np
 
-
-# Define Kelas untuk LogReg
 class LogisticRegression():
     # Init konstruktor dengan params learning rate dan jumlah iterasi
     def __init__(self, lr=0.001, n_iters=200):
@@ -46,5 +44,3 @@ class LogisticRegression():
         class_pred = [0 if y<=0.5 else 1 for y in y_pred]
         return class_pred
     
-    def fit_predict(self, X, y, X_test):
-        self.fit(X, y).predict(X_test)
