@@ -1,1 +1,0 @@
-# tugas-besar-2-ai-lanjut
