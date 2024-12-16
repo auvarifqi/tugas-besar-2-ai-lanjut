@@ -1033,7 +1033,6 @@ class FeatureGroupingNumeric(BaseEstimator, TransformerMixin):
         """
         return self.fit(X, y).transform(X)
 
-
 class FeatureDimensionReducer(BaseEstimator, TransformerMixin):
     def __init__(self, method='pca', n_components=None, numeric_features_to_reduce=None, column_names='component'):
         """
@@ -1049,14 +1048,16 @@ class FeatureDimensionReducer(BaseEstimator, TransformerMixin):
         self.column_names = column_names
         self.reducer = None
         self.variance_ratio_ = None  # Store variance ratio (for PCA)
+        self.cumulative_variance_ratio_ = None  # Cumulative variance ratio for PCA
 
-    def fit(self, X, y=None):
+    def fit(self, X, y=None, threshold=0.90):
         """
         Fit the dimensionality reduction model (PCA or LDA) to the data.
 
         Parameters:
         - X: Input data (features).
         - y: Target labels (only used if 'lda' method is selected).
+        - threshold: The minimum cumulative variance ratio required for PCA.
 
         Returns:
         - self: Fitted transformer.
@@ -1069,14 +1070,27 @@ class FeatureDimensionReducer(BaseEstimator, TransformerMixin):
         X_selected = X[self.numeric_features_to_reduce]
 
         if self.method == 'pca':
-            # Use PCA for dimensionality reduction
+            # Perform PCA to calculate explained variance for all components
+            temp_pca = PCA()
+            temp_pca.fit(X_selected)
+
+            # Calculate cumulative variance ratio
+            self.variance_ratio_ = temp_pca.explained_variance_ratio_
+            self.cumulative_variance_ratio_ = np.cumsum(self.variance_ratio_)
+
+            # Select the minimum number of components to meet the threshold
+            if self.n_components is None:
+                self.n_components = np.argmax(self.cumulative_variance_ratio_ >= threshold) + 1
+
+            # Print variance ratios for transparency
+            print(f"Variance Ratio for each component: {self.variance_ratio_}")
+            print(f"Cumulative Variance Ratio: {self.cumulative_variance_ratio_}")
+            print(f"Selected number of components (threshold={threshold * 100}%): {self.n_components}")
+
+            # Fit PCA with the selected number of components
             self.reducer = PCA(n_components=self.n_components)
             self.reducer.fit(X_selected)
-            # Store explained variance ratio
-            self.variance_ratio_ = self.reducer.explained_variance_ratio_
-            # print variance ratio
-            print(f"Variance Ratio: {self.variance_ratio_}")
-            print(f"Cumulative Variance Ratio (Threshold 0.90): {np.cumsum(self.variance_ratio_)}")
+
         elif self.method == 'lda':
             # Use LDA for dimensionality reduction, requires target labels (supervised method)
             if y is None:
@@ -1122,18 +1136,19 @@ class FeatureDimensionReducer(BaseEstimator, TransformerMixin):
 
         return X_transformed
 
-    def fit_transform(self, X, y=None):
+    def fit_transform(self, X, y=None, threshold=0.90):
         """
         Fit to data, then transform it in one step.
 
         Parameters:
         - X: Input data.
         - y: Target labels (only used if 'lda' method is selected).
+        - threshold: The minimum cumulative variance ratio required for PCA.
 
         Returns:
         - X_transformed: Data with original non-reduced features and transformed reduced features.
         """
-        return self.fit(X, y).transform(X)
+        return self.fit(X, y, threshold).transform(X)
 
     def get_variance_ratio(self):
         """
